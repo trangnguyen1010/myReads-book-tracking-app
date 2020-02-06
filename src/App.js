@@ -155,7 +155,7 @@ class SearchBooks extends React.Component {
     return (
       <div className="search-books">
         <div className="search-books-bar">
-          <Link to="/"><button className="close-search">Close</button></Link>
+          <HomePage />
           <div className="search-books-input-wrapper">
             {/*
               NOTES: The search from BooksAPI is limited to a particular set of search terms.
@@ -175,6 +175,12 @@ class SearchBooks extends React.Component {
       </div>
     )
   }
+}
+
+function HomePage(){
+  return (
+    <Link to="/"><button className="close-search">Close</button></Link>
+  )
 }
 
 export default BooksApp
