@@ -60,9 +60,7 @@ class ListBooks extends React.Component {
             ))}
           </div>
         </div>
-        <div className="open-search">
-          <Link to="/search"><button>Add a book</button></Link>
-        </div>
+        <SearchPage />
       </div>
     )
   }
@@ -122,6 +120,14 @@ class BookControl extends React.Component {
       </div>
     )
   }
+}
+
+function SearchPage(){
+  return (
+    <div className="open-search">
+      <Link to="/search"><button>Add a book</button></Link>
+    </div>
+  )
 }
 
 class SearchBooks extends React.Component {
