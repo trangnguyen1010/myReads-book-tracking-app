@@ -20,7 +20,22 @@ class BooksApp extends React.Component {
     {key:'currentlyReading' , name: 'Currently Reading'},
     {key:'wantToRead' , name: 'Want to Read'},
     {key:'read' , name: 'Read'},
-  ];
+  ]
+
+  ChangeShelf = (book, shelf) => {
+    BooksAPI.update(book, shelf).then(books => {
+      const updatedBooks = this.state.books.map(c => {
+        if (c.id === book.id) {
+          c.shelf = shelf
+        }
+        return c
+      });
+
+      this.setState({
+        books: updatedBooks,
+      });
+    });
+  }
 
   render() {
     const { books } = this.state;
@@ -31,7 +46,7 @@ class BooksApp extends React.Component {
 
         <Route exact path='/'
         render={() => (
-          <ListBooks books={books} shelves={this.shelves} />
+          <ListBooks books={books} shelves={this.shelves} onChangeShelf={this.ChangeShelf} />
         )}
         />
       </div>
@@ -41,7 +56,7 @@ class BooksApp extends React.Component {
 
 class ListBooks extends React.Component {
   render() {
-    const { books, shelves } = this.props;
+    const { books, shelves, onChangeShelf } = this.props;
 
     // filter books for a particular shelf
     function booksOnShelf (shelf){
@@ -56,7 +71,7 @@ class ListBooks extends React.Component {
         <div className="list-books-content">
           <div>
             {shelves.map(shelf => (
-              <Bookshelf key={shelf.key} shelf={shelf} books={booksOnShelf(shelf)} />
+              <Bookshelf key={shelf.key} shelf={shelf} books={booksOnShelf(shelf)} onChangeShelf={onChangeShelf} />
             ))}
           </div>
         </div>
@@ -68,7 +83,7 @@ class ListBooks extends React.Component {
 
 class Bookshelf extends React.Component {
   render() {
-    const { shelf, books } = this.props;
+    const { shelf, books, onChangeShelf } = this.props;
 
     return (
       <div className="bookshelf">
@@ -76,7 +91,7 @@ class Bookshelf extends React.Component {
         <div className="bookshelf-books">
           <ol className="books-grid">
             {books.map(book => (
-              <Book key={book.id} book={book} />
+              <Book key={book.id} book={book} onChangeShelf={onChangeShelf} />
             ))}
           </ol>
         </div>
@@ -87,14 +102,14 @@ class Bookshelf extends React.Component {
 
 class Book extends React.Component {
   render() {
-    const { book } = this.props;
+    const { book, onChangeShelf } = this.props;
 
     return (
       <li>
           <div className="book">
             <div className="book-top">
               <div className="book-cover" style={{ width: 128, height: 193, backgroundImage: `url(${book.imageLinks.thumbnail})` }}></div>
-              <BookControl shelf={book.shelf} />
+              <BookControl book={book} onChangeShelf={onChangeShelf} />
             </div>
             <div className="book-title">{book.title}</div>
             <div className="book-authors">{book.authors.join(', ')}</div>
@@ -105,12 +120,17 @@ class Book extends React.Component {
 }
 
 class BookControl extends React.Component {
+  state = {
+    value: this.props.book.shelf,
+  }
+  handleChange = event => {
+    this.setState({ value: event.target.value });
+    this.props.onChangeShelf(this.props.book, event.target.value);
+  }
   render() {
-    const { shelf } = this.props;
-
     return (
       <div className="book-shelf-changer">
-        <select value={shelf}>
+        <select value={this.state.value} onChange={this.handleChange} >
           <option value="move" disabled>Move to...</option>
           <option value="currentlyReading">Currently Reading</option>
           <option value="wantToRead">Want to Read</option>
