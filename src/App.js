@@ -108,11 +108,12 @@ class Book extends React.Component {
       <li>
           <div className="book">
             <div className="book-top">
-              <div className="book-cover" style={{ width: 128, height: 193, backgroundImage: `url(${book.imageLinks.thumbnail})` }}></div>
+              <div className="book-cover" style={{ width: 128, height: 193, backgroundImage: `url(${book.imageLinks &&
+                book.imageLinks.thumbnail})` }}></div>
               <BookControl book={book} onChangeShelf={onChangeShelf} />
             </div>
             <div className="book-title">{book.title}</div>
-            <div className="book-authors">{book.authors.join(', ')}</div>
+            <div className="book-authors">{book.authors && book.authors.join(', ')}</div>
           </div>
       </li>
     )
@@ -151,11 +152,37 @@ function SearchPage(){
 }
 
 class SearchBooks extends React.Component {
+  state = {
+    searchResults : [],
+    value: ''
+  }
+
+  handleChange = event => {
+    const value = event.target.value;
+    this.setState({ value: value });
+
+    if (value.length > 0) {
+      BooksAPI.search(value).then(books => {
+        if (books.error) {
+          this.setState({ searchResults: [] });
+        } else {
+          this.setState({ searchResults: books });
+        }
+      }).catch(this.setState({ searchResults: [] }));
+    }else {
+      this.setState({ searchResults: [] });
+    }
+  };
+
+  resetSearch = () => {
+    this.setState({ searchResults: [] });
+  }
+
   render() {
     return (
       <div className="search-books">
         <div className="search-books-bar">
-          <HomePage />
+          <HomePage resetSearch={this.resetSearch} />
           <div className="search-books-input-wrapper">
             {/*
               NOTES: The search from BooksAPI is limited to a particular set of search terms.
@@ -165,21 +192,25 @@ class SearchBooks extends React.Component {
               However, remember that the BooksAPI.search method DOES search by title or author. So, don't worry if
               you don't find a specific author or title. Every search is limited by search terms.
             */}
-            <input type="text" placeholder="Search by title or author"/>
+            <input type="text" placeholder="Search by title or author" value={this.state.value} onChange={this.handleChange} />
 
           </div>
         </div>
         <div className="search-books-results">
-          <ol className="books-grid"></ol>
+          <ol className="books-grid">
+          {this.state.searchResults.map(book => (
+              <Book key={book.id} book={book} />
+            ))}
+          </ol>
         </div>
       </div>
     )
   }
 }
 
-function HomePage(){
+function HomePage(props){
   return (
-    <Link to="/"><button className="close-search">Close</button></Link>
+    <Link to="/"><button className="close-search" onClick={props.resetSearch} >Close</button></Link>
   )
 }
 
