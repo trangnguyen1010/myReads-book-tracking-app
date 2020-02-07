@@ -24,11 +24,19 @@ class BooksApp extends React.Component {
 
   ChangeShelf = (book, shelf) => {
     BooksAPI.update(book, shelf).then(books => {
+      // if the book is new then add it to the state
+      if(book.shelf === 'none' && shelf !== 'none'){
+        this.setState(state => {
+          const newBooks = state.books.concat(book);
+          return {books: newBooks}
+        })
+      }
+
       const updatedBooks = this.state.books.map(c => {
         if (c.id === book.id) {
           c.shelf = shelf
         }
-        return c
+        return c;
       });
 
       this.setState({
@@ -42,7 +50,11 @@ class BooksApp extends React.Component {
 
     return (
       <div className="app">
-        <Route path='/search' component={SearchBooks}  />
+        <Route path='/search'
+        render={() => (
+          <SearchBooks books={books} onChangeShelf={this.ChangeShelf} />
+        )}
+        />
 
         <Route exact path='/'
         render={() => (
@@ -179,6 +191,19 @@ class SearchBooks extends React.Component {
   }
 
   render() {
+    const { books, onChangeShelf } = this.props;
+    // add shelves that I've selected before, and add 'none' if I havn't selected them
+    this.state.searchResults.forEach(function(searchedBook){
+      books.forEach(function(book){
+        if (book.id === searchedBook.id) {
+          searchedBook.shelf = book.shelf;
+        }
+      });
+      if(!searchedBook.shelf){
+        searchedBook.shelf = 'none';
+      }
+    })
+
     return (
       <div className="search-books">
         <div className="search-books-bar">
@@ -199,7 +224,7 @@ class SearchBooks extends React.Component {
         <div className="search-books-results">
           <ol className="books-grid">
           {this.state.searchResults.map(book => (
-              <Book key={book.id} book={book} />
+              <Book key={book.id} book={book} onChangeShelf={onChangeShelf} />
             ))}
           </ol>
         </div>
